@@ -1,0 +1,147 @@
+#game-container {
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.roadmap-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px;
+  max-width: 1200px;
+}
+
+.roadmap-step {
+  position: relative;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.roadmap-step:hover {
+  transform: scale(1.05);
+}
+
+.step-link {
+  display: block;
+  text-decoration: none;
+}
+
+.step-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  height: 100%;
+  border-radius: 15px;
+  transition: all 0.3s ease-in-out;
+  border: 2px solid #ddd;
+  background: linear-gradient(135deg, #f6f6f6, #e0e0e0);
+}
+
+.step-card h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.step-card p {
+  font-size: 0.9rem;
+  color: #555;
+  text-align: center;
+  margin: 0;
+  padding: 10px;
+  font-style: italic;
+}
+
+.step-card:hover {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Color coding for different steps with a gradient effect */
+.roadmap-step:nth-child(odd) .step-card {
+  background: linear-gradient(135deg, #f9f9f9, #d0f4e6); /* Light Green */
+  border: 2px solid #b2d8b5;
+}
+
+.roadmap-step:nth-child(even) .step-card {
+  background: linear-gradient(135deg, #f0f8ff, #d0e6f5); /* Light Blue */
+  border: 2px solid #a3c8e5;
+}
+
+/* Arrow styling */
+.arrow {
+  position: absolute;
+  top: 50%;
+  left: 100%; /* Position the arrow to the right of each step */
+  margin-left: 10px; /* Add space between the step and arrow */
+  width: 0;
+  height: 0;
+  border-left: 8px solid #000; /* Thin black arrow */
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transform: translateY(-50%);
+}
+
+/* Hide the arrow on the last step */
+.roadmap-step:last-child .arrow {
+  display: none;
+}
+
+
+/* Course container styling */
+.course-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.course-content {
+  text-align: center;
+  width: 80%;
+}
+
+.course-image-container {
+  margin: 20px 0;
+}
+
+.course-image {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  border-radius: 10px;
+}
+
+.course-nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  width: 50%;
+  margin-top: 20px;
+}
+
+.nav-button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  background-color: #5c6bc0;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.nav-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.nav-button:hover:not(:disabled) {
+  background-color: #3e4e91;
+}

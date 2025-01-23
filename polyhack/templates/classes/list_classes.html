@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="page-title">Classes</h2>
+                {% if user.is_teacher %}
+                <a href="{% url 'classes:create_class' %}" class="btn btn-primary">
+                    <i class="fas fa-plus-circle me-2"></i>Create New Class
+                </a>
+                {% endif %}
+            </div>
+
+            {% if messages %}
+            <div class="messages mb-4">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} d-flex align-items-center alert-dismissible fade show">
+                    {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle me-2"></i>
+                    {% elif message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% else %}
+                        <i class="fas fa-info-circle me-2"></i>
+                    {% endif %}
+                    <div>{{ message }}</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="row">
+                {% for class in classes %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        {% if class.image %}
+                            <img src="{{ class.image.url }}" class="card-img-top class-image" alt="{{ class.name }}">
+                        {% else %}
+                            <div class="card-img-top class-image-placeholder d-flex align-items-center justify-content-center bg-light">
+                                <i class="fas fa-chalkboard-teacher text-muted" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-chalkboard text-primary me-2"></i>
+                                <h5 class="card-title mb-0">{{ class.name }}</h5>
+                            </div>
+                            <p class="card-text flex-grow-1">{{ class.description|truncatewords:30 }}</p>
+                            <div class="mt-3">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-user-tie text-muted me-2"></i>
+                                    <span class="text-muted">{{ class.teacher.name }}</span>
+                                    <span class="mx-2">•</span>
+                                    <i class="far fa-calendar-alt text-muted me-2"></i>
+                                    <small class="text-muted">{{ class.created_at|date }}</small>
+                                </div>
+                                <a href="{% url 'classes:class_detail' pk=class.pk %}" 
+                                   class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-eye me-2"></i>View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info d-flex align-items-center">
+                        <i class="fas fa-info-circle me-3 fs-4"></i>
+                        <div>
+                            {% if user.is_teacher %}
+                                No classes created yet. Click the "Create New Class" button to get started!
+                            {% else %}
+                                No classes available at the moment.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.alert {
+    border: none;
+    border-radius: 10px;
+}
+
+.alert-success {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.alert-info {
+    background-color: #cff4fc;
+    color: #055160;
+}
+
+.btn-close {
+    opacity: 0.5;
+}
+
+.btn-close:hover {
+    opacity: 1;
+}
+
+.class-image {
+    height: 200px;
+    object-fit: cover;
+}
+
+.class-image-placeholder {
+    height: 200px;
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %} 

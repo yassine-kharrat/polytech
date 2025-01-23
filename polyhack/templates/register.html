@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% load static %}
+{% block hero %}
+<div class="container-xxl py-5 bg-primary hero-header mb-5">
+    <div class="container my-5 py-2 px-lg-5">
+        <div class="row g-5 py-2">
+            <div class="col-lg-6 text-center text-lg-start">
+                <div class="section-title position-relative mb-5 pb-2 wow fadeInUp" data-wow-delay="0.1s">
+                    <h1 class="text-white mb-4 animated zoomIn">Create Your Account</h1>
+                </div>
+                <div class="wow fadeInUp" data-wow-delay="0.3s">
+                    <form method="post" action="/user/register/">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" name="name" id="name" placeholder="Your Name" required>
+                                    <label for="name">Your Name</label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-floating">
+                                    <input type="email" class="form-control" name="email" id="email" placeholder="Your Email" required>
+                                    <label for="email">Your Email</label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-floating">
+                                    <input type="password" class="form-control" name="password" id="password" placeholder="Password" required>
+                                    <label for="password">Password</label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-floating">
+                                    <input type="password" class="form-control" name="confirm_password" id="confirm_password" placeholder="Confirm Password" required>
+                                    <label for="confirm_password">Confirm Password</label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <h5 class="text-white">Select Your Role</h5>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="position-relative">
+                                            <input type="radio" name="user_type" id="teacher" value="teacher" class="btn-check" {% if request.POST.user_type == "teacher" %}checked{% endif %} required>
+                                            <label class="btn btn-light w-100" for="teacher">I am a Teacher</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="position-relative">
+                                            <input type="radio" name="user_type" id="student" value="student" class="btn-check" {% if request.POST.user_type == "student" %}checked{% endif %} required>
+                                            <label class="btn btn-light w-100" for="student">I am a Student</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                    
+                            <div class="col-12">
+                                <button class="btn btn-light w-100 py-3" type="submit">Register</button>
+                            </div>
+                            <div class="col-12 text-center mt-3">
+                                <p class="text-white">Already have an account? <a href="/user/login" class="text-white"><u>Login here</u></a>.</p>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center text-lg-start">
+                <img class="img-fluid" src="{% static 'img/hero.png' %}" alt="">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Empty content block since form is moved to hero section -->
+{% endblock %}

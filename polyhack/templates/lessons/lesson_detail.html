@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-5 bg-light">
+    <!-- Header Section -->
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'classes:class_list' %}">Classes</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'classes:class_detail' lesson.class_instance.pk %}">{{ lesson.class_instance.name }}</a></li>
+                        <li class="breadcrumb-item active">{{ lesson.title }}</li>
+                    </ol>
+                </nav>
+                <h1 class="display-4 mb-3">{{ lesson.title }}</h1>
+                <div class="d-flex align-items-center text-muted mb-4">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>
+                    <span>{{ lesson.class_instance.name }}</span>
+                    <span class="mx-2">|</span>
+                    <i class="far fa-calendar-alt me-2"></i>
+                    <span>{{ lesson.created_at|date:"F j, Y" }}</span>
+                </div>
+                {% if lesson.description %}
+                    <p class="lead">{{ lesson.description }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Content Section -->
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                {% if lesson.video_content %}
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="fas fa-video me-2"></i>Video Recording
+                        </h5>
+                        <div class="ratio ratio-16x9 mb-3">
+                            <video controls>
+                                <source src="{{ lesson.video_content.url }}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                        
+                        <!-- Add Summary Button and Summary Display Area -->
+                        {% if is_teacher and lesson.video_content %}
+                            <button id="generateSummaryBtn" class="btn btn-primary mt-3" 
+                                    onclick="generateSummary()">
+                                Generate Video Summary
+                            </button>
+                            <div id="summarySpinner" class="d-none">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <span class="ms-2">Generating summary... This may take a few minutes.</span>
+                            </div>
+                        {% endif %}
+                        
+                        <div id="summarySection" class="mt-3 {% if not lesson.video_summary %}d-none{% endif %}">
+                            <h6>Video Summary:</h6>
+                            <div id="summaryContent" class="p-3 bg-light rounded">
+                                {{ lesson.video_summary|default:"" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if lesson.has_simulation %}
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="fas fa-laptop me-2"></i>Interactive Simulation
+                        </h5>
+                        <div class="simulation-container bg-light p-3 rounded">
+                            <div class="ratio ratio-16x9">
+                                <iframe 
+                                    src="{{ lesson.simulation_url|default:'https://phet.colorado.edu/sims/html/build-a-nucleus/latest/build-a-nucleus_en.html' }}"
+                                    allowfullscreen
+                                    class="rounded">
+                                </iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                {% if lesson.pdf_content %}
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="fas fa-file-pdf me-2"></i>Course Materials
+                        </h5>
+                        <a href="{{ lesson.pdf_content.url }}" class="btn btn-primary w-100" target="_blank">
+                            <i class="fas fa-download me-2"></i>Download PDF
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Additional Resources Card -->
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="fas fa-info-circle me-2"></i>Lesson Info
+                        </h5>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2">
+                                <i class="fas fa-clock me-2"></i>Duration: 45 minutes
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-book me-2"></i>Subject: {{ lesson.class_instance.subject }}
+                            </li>
+                            <li>
+                                <i class="fas fa-user-graduate me-2"></i>Teacher: {{ lesson.class_instance.teacher.user.get_full_name }}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin-bottom: 1rem;
+}
+
+.card {
+    border: none;
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.card-title {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.ratio-16x9 {
+    background: #000;
+    border-radius: 0.5rem;
+}
+
+.btn-primary {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+}
+
+.list-unstyled li {
+    color: #6c757d;
+    padding: 0.5rem 0;
+}
+
+.display-4 {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.lead {
+    color: #6c757d;
+}
+
+.shadow {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+}
+
+.simulation-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.page-title {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.ratio-16x9 {
+    --bs-aspect-ratio: 62.5%;
+}
+</style>
+
+<!-- Add JavaScript for handling summary generation -->
+<script>
+function generateSummary() {
+    const button = document.getElementById('generateSummaryBtn');
+    const spinner = document.getElementById('summarySpinner');
+    const summarySection = document.getElementById('summarySection');
+    const summaryContent = document.getElementById('summaryContent');
+
+    // Disable button and show spinner
+    button.disabled = true;
+    spinner.classList.remove('d-none');
+
+    // Make AJAX call to generate summary
+    fetch('{% url "lessons:generate_summary" pk=lesson.pk %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.summary) {
+            summaryContent.textContent = data.summary;
+            summarySection.classList.remove('d-none');
+        } else {
+            throw new Error(data.error || 'Failed to generate summary');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error generating summary. Please try again.');
+    })
+    .finally(() => {
+        // Re-enable button and hide spinner
+        button.disabled = false;
+        spinner.classList.add('d-none');
+    });
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %} 
