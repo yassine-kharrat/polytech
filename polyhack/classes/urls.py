@@ -15,4 +15,6 @@ urlpatterns = [
     path('<int:pk>/attendance/active/', views.active_session, name='active_session'),
     path('<int:pk>/attendance/end/', views.end_session, name='end_session'),
     path('<int:pk>/attendance/cancel/', views.cancel_session, name='cancel_session'),
+    path('<int:pk>/process_handwriting/', views.process_handwriting, name='process_handwriting'),
+    
 ] 

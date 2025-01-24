@@ -12,7 +12,15 @@ from .models import Attendance, AttendanceSession
 from django.http import JsonResponse
 import json
 from django.db import models
-
+from django.shortcuts import render
+from unstract.llmwhisperer import LLMWhispererClientV2
+import tempfile
+import logging
+from django.shortcuts import render
+from unstract.llmwhisperer import LLMWhispererClientV2
+import openai
+import fitz 
+import os
 @login_required
 @teacher_required
 def create_class(request):
@@ -259,3 +267,124 @@ def cancel_session(request, pk):
 # def class_list(request):
 #     classes = Class.objects.all()
 #     return render(request, 'classes/list_classes.html', {'classes': classes}) 
+
+#from handwritten to text
+import logging
+
+logger = logging.getLogger(__name__)
+
+@login_required
+@teacher_required
+def process_handwriting(request, pk):
+    class_obj = get_object_or_404(Class, pk=pk, teacher__user=request.user)
+    
+    if request.method == 'POST':
+        pdf_file = request.FILES.get('file')
+        if pdf_file:
+            try:
+                # Save the uploaded file to a temporary location
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
+                    temp_file.write(pdf_file.read())
+                    temp_file_path = temp_file.name
+
+                # Initialize LLMWhispererClientV2
+                client = LLMWhispererClientV2(
+                    base_url="https://llmwhisperer-api.us-central.unstract.com/api/v2",
+                    api_key="LHyCOixpinYQNFSCjaMJQmVd5rkhT5D_uun3mIcl8dA"
+                )
+
+                # Process the file
+                result = client.whisper(
+                    file_path=temp_file_path,
+                    wait_for_completion=True,
+                    wait_timeout=200
+                )
+                extracted_text = result["extraction"]["result_text"]
+
+                # Clean up the temporary file
+                os.remove(temp_file_path)
+
+                # Grade the student's answers
+                grade_feedback = grade_student_answers(extracted_text)
+                formatted_feedback = format_feedback(grade_feedback)
+
+                return render(request, 'classes/class_detail.html', {
+                    'class': class_obj,
+                    'grade_feedback': formatted_feedback,
+                    'is_teacher': True
+                })
+
+            except Exception as e:
+                logger.error("Error processing file upload: %s", str(e))
+                return render(request, 'classes/class_detail.html', {
+                    'class': class_obj,
+                    'error': str(e),
+                    'is_teacher': True
+                })
+
+    return render(request, 'classes/class_detail.html', {
+        'class': class_obj,
+        'is_teacher': True
+    })
+
+def grade_student_answers(extracted_text):
+    support_path = 'C:/Users/DOUA/Desktop/correction.pdf'
+    extracted_support = extract_text_from_pdf(support_path)
+
+    # Initialize the Sambanova API client
+    client = openai.OpenAI(
+        api_key="89b0dcfb-f902-4920-8bfd-ec6bd4015960",
+        base_url="https://api.sambanova.ai/v1",
+    )
+
+    # Create a prompt to summarize the transcription and grade the answers
+    response = client.chat.completions.create(
+        model="Meta-Llama-3.1-8B-Instruct",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {
+                "role": "user",
+                "content": f"""
+                    Correct the following exam answers: {extracted_text} using {extracted_support} as a reference.
+                    For each answer, please:
+                    1. Indicate what's wrong with the answer.
+                    2. Tell if any part of the answer is correct.
+                    3. Provide a grade (out of 100) for the whole exam based on the accuracy of the answers in general.
+                    4. Explain the reasoning behind each answer's grade, based on the support document.
+                    """
+            }
+        ],
+        temperature=0.1,
+        top_p=0.1
+    )
+
+    grade_feedback = response.choices[0].message.content
+    return grade_feedback
+
+
+def extract_text_from_pdf(pdf_path):
+    doc = fitz.open(pdf_path)
+    text = ""
+    for page_num in range(doc.page_count):
+        page = doc.load_page(page_num)
+        text += page.get_text("text")
+    return text
+
+def format_feedback(feedback):
+    # Split the feedback into lines
+    lines = feedback.split("\n")
+    formatted_lines = []
+    
+    for line in lines:
+        # Handle headings marked with `**`
+        if line.startswith("**") and line.endswith("**"):
+            formatted_lines.append(f"<h3>{line.strip('**')}</h3>")
+        # Handle bullet points
+        elif line.startswith("- "):
+            formatted_lines.append(f"<li>{line[2:]}</li>")
+        # Handle regular lines (wrap in paragraph)
+        else:
+            formatted_lines.append(f"<p>{line}</p>")
+    
+    # Join formatted lines into a single string
+    return "\n".join(formatted_lines)
