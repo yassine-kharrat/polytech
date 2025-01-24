@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+{% load static %}
+{% block hero %}
+<div class="container-xxl py-5 bg-primary hero-header mb-5">
+    <div class="container my-5 py-2 px-lg-5">
+        <div class="row g-5 py-2">
+            <div class="col-lg-6 text-center text-lg-start">
+                <h1 class="text-white mb-4 animated zoomIn"></h1>
+                <h1 class="text-white pb-3 animated zoomIn" style="margin-top: 75px">Your personal therapist.</h1>
+                {% comment %} <a href="" class="btn btn-light py-sm-3 px-sm-5 rounded-pill me-3 animated slideInLeft">Free Quote</a>
+                <a href="" class="btn btn-outline-light py-sm-3 px-sm-5 rounded-pill animated slideInRight">Contact Us</a> {% endcomment %}
+                <div id="rippleContainer"></div>
+            </div>
+            <div class="col-lg-6 text-center text-lg-start">
+                <img class="img-fluid" src="{% static 'img/Psychologist-amico.png' %}" alt="">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% if user.is_authenticated %}
+    <h2>Welcome, {{ user.name }}!</h2>
+    <p>You are logged in as {{ user.email }}.</p>
+{% else %}
+    <h2>Welcome to SEO Master!</h2>
+    <p>Please <a href="/user/login">log in</a> or <a href="/user/register">register</a> to continue.</p>
+{% endif %}
+
+{% block content %}
+<div class="vfx-container">
+    <h1>Voice Therapy AI</h1>
+
+    <!-- Circular Ripple Effect Container -->
+    
+
+    <!-- Status -->
+    <div id="statusIndicator" class="status-indicator">
+        Ready to listen
+    </div>
+
+    <!-- Action Button -->
+    <button id="startButton" class="btn btn-primary py-sm-3 px-sm-5 rounded-pill" onclick="startVoiceSession()">Start Therapy</button>
+</div>
+
+<style>
+    .vfx-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: relative;
+    }
+
+    .status-indicator {
+        margin-top: 20px;
+        font-size: 1.2rem;
+        color: #4a90e2;
+    }
+
+    /* Circular Ripple Effect Container */
+    #rippleContainer {
+        position: absolute;
+        top: 50%;
+        left: 25%;
+        transform: translate(-50%, -50%); /* Center the container within its parent */
+        pointer-events: none; /* Ensure no interaction with the container */
+        z-index: 9999; /* Keep it on top of other content */
+    }
+
+    /* Ripple Style */
+    .ripple {
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        border-radius: 500%;
+        border: 8px solid orange; /* Updated color */
+        opacity: 0.5;
+        animation: rippleAnimation 2s infinite ease-out;
+        transform-origin: center;
+        pointer-events: none;
+    }
+
+    @keyframes rippleAnimation {
+        0% {
+            transform: scale(0.5);
+            opacity: 0.5;
+        }
+        50% {
+            transform: scale(2.5);
+            opacity: 0.3;
+        }
+        100% {
+            transform: scale(0.5);
+            opacity: 0;
+        }
+    }
+
+    #startButton {
+        display: none;
+    }
+</style>
+
+
+
+<script>
+    const statusIndicator = document.getElementById('statusIndicator');
+    const rippleContainer = document.getElementById('rippleContainer');
+
+    // Synchronize animation with audio
+    function animateRipple(audioContext, source) {
+        const analyser = audioContext.createAnalyser();
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+    
+        analyser.fftSize = 256;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+    
+        let maxRippleSize = 240;
+        const multiplier = maxRippleSize / 255;
+    
+        function renderFrame() {
+            analyser.getByteFrequencyData(dataArray);
+    
+            let totalHeight = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+                totalHeight += dataArray[i];
+            }
+    
+            const averageHeight = totalHeight / dataArray.length;
+            const rippleSize = averageHeight * multiplier;
+    
+            const ripple = document.createElement('div');
+            ripple.classList.add('ripple');
+            ripple.style.width = `${rippleSize}px`;
+            ripple.style.height = `${rippleSize}px`;
+    
+            // Set fixed color for the ripple (remove dynamic coloring)
+            ripple.style.borderColor = 'white';  // Set the fixed color
+    
+            ripple.style.top = `${Math.random() * 20}px`;
+            ripple.style.left = `${Math.random() * 20}px`;
+    
+            rippleContainer.appendChild(ripple);
+    
+            setTimeout(() => {
+                ripple.remove();
+            }, 2000);
+    
+            requestAnimationFrame(renderFrame);
+        }
+    
+        renderFrame();
+    }
+    
+
+    function playResponse(audioUrl) {
+        if (audioUrl) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const audio = new Audio(audioUrl);
+
+            const source = audioContext.createMediaElementSource(audio);
+            animateRipple(audioContext, source);
+
+            audio.play()
+                .then(() => console.log('Audio playback started'))
+                .catch(error => console.error('Audio playback error:', error));
+
+            audio.onended = () => {
+                rippleContainer.innerHTML = '';
+            };
+        } else {
+            console.warn('No audio URL received.');
+        }
+    }
+
+    function startVoiceSession() {
+        console.log('Button clicked!');
+
+        if ('webkitSpeechRecognition' in window) {
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            statusIndicator.textContent = 'Listening...';
+            console.log('Speech recognition started');
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                console.log('User said:', transcript);
+
+                fetch('send_message/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: transcript }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.response) {
+                        playResponse(data.audio_url);
+                        statusIndicator.textContent = 'Ready to listen';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    statusIndicator.textContent = 'Error occurred';
+                });
+            };
+
+            recognition.onerror = function() {
+                console.log('Error during speech recognition');
+                statusIndicator.textContent = 'Error during recognition';
+            };
+
+            recognition.onend = function() {
+                console.log('Speech recognition ended');
+                statusIndicator.textContent = 'Ready to listen';
+            };
+
+            recognition.start();
+        } else {
+            alert('Speech recognition not supported in this browser.');
+        }
+    }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.code === 'Space') {
+            event.preventDefault();
+            const startButton = document.getElementById('startButton');
+            if (startButton) {
+                startButton.click(); 
+            }
+        }
+    });
+</script>
+
+{% endblock %}
