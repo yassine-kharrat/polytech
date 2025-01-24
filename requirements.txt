@@ -16,3 +16,5 @@ openai==1.12.0
 # Other dependencies
 Pillow==10.2.0  # For image handling
 django-crispy-forms==2.1  # If you're using crispy forms 
+django-ngrok==0.3.1 
+pyngrok==7.1.5 

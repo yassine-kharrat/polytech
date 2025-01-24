@@ -17,7 +17,29 @@ SECRET_KEY = 'your-secret-key'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# Ngrok configuration
+NGROK_URL = 'https://b43e-41-230-221-34.ngrok-free.app'
+NGROK_HOST = 'b43e-41-230-221-34.ngrok-free.app'
+
+# ALLOWED_HOSTS configuration
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '192.168.146.1',
+    NGROK_HOST,  # Add the ngrok host
+    'b43e-41-230-221-34.ngrok-free.app',  # Explicit ngrok domain
+    '.ngrok-free.app',  # Allow all ngrok subdomains
+]
+
+# CSRF settings
+CSRF_TRUSTED_ORIGINS = [
+    NGROK_URL,
+    'https://*.ngrok-free.app',
+]
+
+# Print debug info
+print("Django settings loaded with:")
+print(f"ALLOWED_HOSTS: {ALLOWED_HOSTS}")
 
 # FFmpeg configuration
 FFMPEG_BIN = r"C:\ffmpeg\bin\ffmpeg.exe"  # Full path to ffmpeg executable
@@ -58,3 +80,22 @@ TEMPLATES = [
         },
     },
 ] 
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'user',
+    'teachers',
+    'students',
+    'classes',
+    'lessons',
+    'django_ngrok',
+] 
+
+# For debugging
+print("Settings loaded with:")
+print(f"ALLOWED_HOSTS: {ALLOWED_HOSTS}") 

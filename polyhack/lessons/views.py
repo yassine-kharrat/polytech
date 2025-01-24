@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.conf import settings
 from .models import Lesson
 from .forms import LessonForm
 from classes.models import Class
@@ -8,7 +9,9 @@ from classes.decorators import teacher_required
 from django.http import JsonResponse
 from .video_summarizer import generate_video_summary
 import os
-from django.conf import settings
+
+# Update NGROK_URL to match current tunnel
+NGROK_URL = 'https://b43e-41-230-221-34.ngrok-free.app'
 
 @login_required
 @teacher_required
@@ -45,10 +48,17 @@ def lesson_detail(request, pk):
                 class_instance__enrolled_students=request.user.student_profile
             )
             
-        return render(request, 'lessons/lesson_detail.html', {
+        context = {
             'lesson': lesson,
-            'is_teacher': request.user.is_teacher
-        })
+            'is_teacher': request.user.is_teacher,
+            'ngrok_url': NGROK_URL,
+            'debug_info': {
+                'ngrok_url': NGROK_URL,
+                'request_path': request.path,
+                'full_url': f"{NGROK_URL}{request.path}",
+            }
+        }
+        return render(request, 'lessons/lesson_detail.html', context)
     except Exception as e:
         print(f"Error in lesson_detail: {str(e)}")
         messages.error(request, "Error loading lesson")

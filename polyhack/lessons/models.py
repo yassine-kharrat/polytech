@@ -15,6 +15,11 @@ def pdf_upload_path(instance, filename):
     safe_name = f"{slugify(base)}{ext}"
     return os.path.join('lessons', 'pdfs', safe_name)
 
+def model_upload_path(instance, filename):
+    base, ext = os.path.splitext(filename)
+    safe_name = f"{slugify(base)}{ext}"
+    return os.path.join('lessons', 'models', safe_name)
+
 class Lesson(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(
@@ -50,6 +55,20 @@ class Lesson(models.Model):
     simulation_url = models.URLField(max_length=500, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    has_3d_model = models.BooleanField(default=False)
+    model_file = models.FileField(
+        upload_to=model_upload_path,
+        validators=[FileExtensionValidator(['glb', 'gltf'])],
+        null=True,
+        blank=True,
+        help_text="Upload 3D model file (GLB format)"
+    )
+    model_poster = models.ImageField(
+        upload_to=model_upload_path,
+        null=True,
+        blank=True,
+        help_text="Upload poster image for 3D model"
+    )
 
     def __str__(self):
         return f"{self.title} - {self.class_instance.name}"
